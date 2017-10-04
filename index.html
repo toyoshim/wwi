@@ -1,0 +1,77 @@
+<html>
+<head>
+<meta name="viewport" content="user-scalable=no">
+<link rel="manifest" href="manifest.json">
+<script src="BreathController.js"></script>
+<script src="TouchController.js"></script>
+</head>
+<body style="margin:0">
+<canvas id="canvas"></canvas>
+<script>
+let note = -1;
+let noteOn = false;
+let velocity = 0;
+const canvas = document.getElementById('canvas');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const ctx = canvas.getContext('2d');
+const touch = new TouchController({
+    onButtonChanged: buttons => {
+        const width = window.innerWidth / 2;
+        const height = window.innerHeight / 4;
+        for (let i = 0; i < 8; ++i) {
+            ctx.fillStyle = (buttons[i] == 0) ? 'white' : 'red';
+            const x = (i < 4) ? 0 : width;
+            const y = (3 - (i % 4)) * height;
+            ctx.fillRect(x, y, width, height);
+        }
+    },
+    onNoteChanged: _note => {
+        if (noteOn) {
+            sendNoteOff(note);
+            if (_note >= 0)
+                sendNoteOn(_note, velocity);
+            else
+                noteOn = false;
+        }
+        note = _note;
+    }
+});
+const breath = new BreathController({
+    onNoteOn: _velocity => {
+        console.log(_velocity);
+        velocity = _velocity;
+        if (note >= 0) {
+            sendNoteOn(note, velocity);
+            noteOn = true;
+        }
+    },
+    onNoteOff: () => {
+        if (!noteOn)
+            return;
+        sendNoteOff(note);
+        noteOn = false;
+    },
+    onVelocityChanged: _velocity => {
+        console.log(_velocity);
+        velocity = _velocity;
+    }
+});
+
+let midi = null;
+navigator.requestMIDIAccess().then(a => {
+    for (let _midi of a.outputs.values())
+        midi = _midi;
+});
+function sendNoteOn(note, velocity) {
+    console.log('noteOn:', note, velocity);
+    midi.send([0x90, note, velocity]);
+}
+
+function sendNoteOff(note) {
+    console.log('noteOff', note);
+    midi.send([0x80, note, 0]);
+}
+</script>
+</body>
+</html>
