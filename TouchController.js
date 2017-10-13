@@ -97,7 +97,7 @@ class TouchController {
         if (this._callbacks.onButtonChanged)
             this._callbacks.onButtonChanged(this._buttons);
         const code = this._buttons.join('');
-        const note = this._noteMap[code];
+        let note = this._noteMap[code];
         if (note === undefined)
             note = -1;
         this._note = note;
