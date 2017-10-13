@@ -8,6 +8,9 @@
 <body style="margin:0">
 <canvas id="canvas"></canvas>
 <script>
+if ('serviceWorker' in navigator)
+    navigator.serviceWorker.register('sw.js');
+
 let note = -1;
 let noteOn = false;
 let velocity = 0;
